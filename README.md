@@ -1,5 +1,6 @@
 # 🏞️ Riviere
 
+[![artifact][artifact]][artifact-url]
 [![tests][tests]][tests-url]
 [![license][license]][license-url]
 
@@ -33,7 +34,8 @@ dependencies {
 
 ## Usage
 
-Concurrent variants are provided for each stream type (`Stream<T>`, `IntStream`, `LongStream`, `DoubleStream`). For example,
+Concurrent variants are provided for each stream type (`Stream<T>`, `IntStream`, `LongStream`, `DoubleStream`).
+For example,
 
 ```java
 var builder = new ConcurrentIntStreamBuilder();
@@ -54,7 +56,9 @@ Please feel free to create an issue if you need additional help.
 
 [MIT](LICENSE) &copy; [Hugo Manrique](https://hugmanrique.me)
 
-[tests]: https://img.shields.io/travis/hugmanrique/TaskGroup/master.svg
-[tests-url]: https://travis-ci.org/hugmanrique/TaskGroup
-[license]: https://img.shields.io/github/license/hugmanrique/TaskGroup.svg
+[artifact]: https://img.shields.io/maven-central/v/me.hugmanrique/riviere
+[artifact-url]: https://search.maven.org/artifact/me.hugmanrique/riviere
+[tests]: https://img.shields.io/travis/hugmanrique/Riviere/master.svg
+[tests-url]: https://travis-ci.org/hugmanrique/Riviere
+[license]: https://img.shields.io/github/license/hugmanrique/Riviere.svg
 [license-url]: LICENSE

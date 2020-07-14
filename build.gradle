@@ -1,5 +1,7 @@
 plugins {
     id 'java-library'
+    id 'maven-publish'
+    id 'signing'
     id 'net.ltgt.errorprone' version '1.2.1'
 }
 
@@ -28,4 +30,57 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+task javadocJar(type: Jar) {
+    classifier 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    required { !project.version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask(':uploadArchives') && project.hasProperty('signing.keyId') }
+    sign configurations.archives
+}
+
+if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+                pom.withXml {
+                    asNode().children().last() + {
+                        name 'Riviere'
+                        description 'Concurrent Stream builders'
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
+                }
+            }
+
+            maven {
+                url 'https://oss.sonatype.org/content/repositories/snapshots/'
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
+                }
+            }
+        }
+    }
 }
