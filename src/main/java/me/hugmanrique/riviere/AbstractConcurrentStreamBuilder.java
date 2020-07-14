@@ -9,13 +9,10 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * TODO Remove
- * A lock-free {@link Stream} builder base implementation.
+ * Concurrent {@link Stream} builder base implementation.
  *
- * Each writer {@link Thread} has an underlying segmented stream builder,
- * allowing lock-free segmented writes.
- * @param <T>
- * @param <B>
+ * @param <T> the type of the stream
+ * @param <B> the type of the underlying stream builders
  */
 abstract class AbstractConcurrentStreamBuilder<T, B> {
 
