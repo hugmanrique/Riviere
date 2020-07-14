@@ -48,18 +48,30 @@ artifacts {
 
 signing {
     required { !project.version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask(':uploadArchives') && project.hasProperty('signing.keyId') }
-    sign configurations.archives
+    sign publishing.publications
 }
 
 if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
     publishing {
         publications {
-            maven(MavenPublication) {
+            mavenJava(MavenPublication) {
                 from components.java
-                pom.withXml {
-                    asNode().children().last() + {
-                        name 'Riviere'
-                        description 'Concurrent Stream builders'
+                pom {
+                    name = 'Riviere'
+                    description = 'Concurrent Stream builders'
+
+                    developers {
+                        developer {
+                            id = 'hugmanrique'
+                            name = 'Hugo Manrique'
+                            email = 'maven@hugmanrique.me'
+                        }
+                    }
+
+                    scm {
+                        connection = 'scm:git@github.com:hugmanrique/Riviere.git'
+                        developerConnection = 'scm:git@github.com:hugmanrique/Riviere.git'
+                        url = 'https://github.com/hugmanrique/Riviere'
                     }
                 }
             }
@@ -67,15 +79,9 @@ if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePass
 
         repositories {
             maven {
-                url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-                credentials {
-                    username sonatypeUsername
-                    password sonatypePassword
-                }
-            }
-
-            maven {
-                url 'https://oss.sonatype.org/content/repositories/snapshots/'
+                def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+                def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+                url version.endsWith('-SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
                 credentials {
                     username sonatypeUsername
                     password sonatypePassword

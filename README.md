@@ -1,6 +1,7 @@
 # 🏞️ Riviere
 
 [![artifact][artifact]][artifact-url]
+[![javadoc][javadoc]][javadoc-url]
 [![tests][tests]][tests-url]
 [![license][license]][license-url]
 
@@ -49,7 +50,7 @@ new Thread(() -> {
 IntStream stream = builder.build(); // 1, 2
 ```
 
-Check out the [javadoc]() for more in-depth documentation.
+Check out the [javadoc][javadoc-url] for more in-depth documentation.
 Please feel free to create an issue if you need additional help.
 
 ## License
@@ -58,6 +59,8 @@ Please feel free to create an issue if you need additional help.
 
 [artifact]: https://img.shields.io/maven-central/v/me.hugmanrique/riviere
 [artifact-url]: https://search.maven.org/artifact/me.hugmanrique/riviere
+[javadoc]: https://javadoc.io/badge2/me.hugmanrique/riviere/javadoc.svg
+[javadoc-url]: https://javadoc.io/doc/me.hugmanrique/riviere
 [tests]: https://img.shields.io/travis/hugmanrique/Riviere/master.svg
 [tests-url]: https://travis-ci.org/hugmanrique/Riviere
 [license]: https://img.shields.io/github/license/hugmanrique/Riviere.svg
