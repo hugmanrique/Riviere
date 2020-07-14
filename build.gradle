@@ -1,0 +1,31 @@
+plugins {
+    id 'java-library'
+    id 'net.ltgt.errorprone' version '1.2.1'
+}
+
+group 'me.hugmanrique'
+version '1.0.0-SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    errorproneVersion = '2.4.0'
+    junitVersion = '5.6.0'
+}
+
+dependencies {
+    errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
+    implementation "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
