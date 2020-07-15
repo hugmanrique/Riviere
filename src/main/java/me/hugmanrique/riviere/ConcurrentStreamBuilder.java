@@ -7,6 +7,7 @@ import java.util.stream.Stream;
  *
  * @param <T> the type of the stream elements
  */
+@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBuilder<Stream<T>, Stream.Builder<T>>
         implements Stream.Builder<T> {
 
@@ -14,13 +15,25 @@ public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBu
         super(Stream::builder);
     }
 
-    @Override
-    public void accept(final T value) {
-        get().accept(value);
+    public ConcurrentStreamBuilder(final int bucketCount) {
+        super(Stream::builder, bucketCount);
     }
 
     @Override
-    protected Stream<T> build0() {
-        return getAll().flatMap(Stream.Builder::build);
+    public void accept(final T value) {
+        var builder = get();
+        synchronized (builder) {
+            builder.accept(value);
+        }
+    }
+
+    @Override
+    protected Stream<T> build0(final Stream.Builder<T> builder) {
+        return builder.build();
+    }
+
+    @Override
+    protected Stream<T> flatMap(final Stream<Stream<T>> streams) {
+        return streams.flatMap(s -> s);
     }
 }

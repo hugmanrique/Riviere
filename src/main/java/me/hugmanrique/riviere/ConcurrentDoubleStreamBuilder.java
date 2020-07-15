@@ -1,10 +1,12 @@
 package me.hugmanrique.riviere;
 
 import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 /**
  * A {@link DoubleStream.Builder} supporting full concurrency of additions.
  */
+@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 public final class ConcurrentDoubleStreamBuilder extends AbstractConcurrentStreamBuilder<DoubleStream, DoubleStream.Builder>
         implements DoubleStream.Builder {
 
@@ -12,15 +14,25 @@ public final class ConcurrentDoubleStreamBuilder extends AbstractConcurrentStrea
         super(DoubleStream::builder);
     }
 
-    @Override
-    public void accept(final double value) {
-        get().accept(value);
+    public ConcurrentDoubleStreamBuilder(final int bucketCount) {
+        super(DoubleStream::builder, bucketCount);
     }
 
     @Override
-    protected DoubleStream build0() {
-        return getAll()
-                .map(DoubleStream.Builder::build)
-                .flatMapToDouble(s -> s);
+    public void accept(final double value) {
+        var builder = get();
+        synchronized (builder) {
+            builder.accept(value);
+        }
+    }
+
+    @Override
+    protected DoubleStream build0(final DoubleStream.Builder builder) {
+        return builder.build();
+    }
+
+    @Override
+    protected DoubleStream flatMap(final Stream<DoubleStream> streams) {
+        return streams.flatMapToDouble(s -> s);
     }
 }
