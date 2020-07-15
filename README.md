@@ -9,7 +9,7 @@
 
 ## Installation
 
-Riviere requires Java 11 or later.
+Requires Java 11 or later.
 
 ### Maven
 
@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    compile 'me.hugmanrique:riviere:1.0.0-SNAPSHOT'
+    compile 'me.hugmanrique:riviere:1.0.0'
 }
 ```
 
@@ -49,6 +49,9 @@ new Thread(() -> {
 
 IntStream stream = builder.build(); // 1, 2
 ```
+
+You may also specify the level of expected concurrency by passing the number of maximum buckets
+to the constructor. It defaults to the number of available processors.
 
 Check out the [javadoc][javadoc-url] for more in-depth documentation.
 Please feel free to create an issue if you need additional help.
