@@ -61,7 +61,7 @@ Please feel free to create an issue if you need additional help.
 [artifact-url]: https://search.maven.org/artifact/me.hugmanrique/riviere
 [javadoc]: https://javadoc.io/badge2/me.hugmanrique/riviere/javadoc.svg
 [javadoc-url]: https://javadoc.io/doc/me.hugmanrique/riviere
-[tests]: https://img.shields.io/travis/hugmanrique/Riviere/master.svg
+[tests]: https://img.shields.io/travis/hugmanrique/Riviere/main.svg
 [tests-url]: https://travis-ci.org/hugmanrique/Riviere
 [license]: https://img.shields.io/github/license/hugmanrique/Riviere.svg
 [license-url]: LICENSE
