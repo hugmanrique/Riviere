@@ -11,6 +11,11 @@ version '1.0.1-SNAPSHOT'
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 repositories {
     mavenCentral()
 }
@@ -32,22 +37,19 @@ test {
     useJUnitPlatform()
 }
 
-task javadocJar(type: Jar) {
-    classifier 'javadoc'
-    from javadoc
-}
+javadoc {
+    options.encoding = 'UTF-8'
+    options.source = '11'
+    options.links(
+            'https://docs.oracle.com/en/java/javase/11/docs/api/'
+    )
 
-task sourcesJar(type: Jar) {
-    classifier 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
+    // Disable Java 8+ doclint tool
+    options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 signing {
-    required { !project.version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask(':uploadArchives') && project.hasProperty('signing.keyId') }
+    required { !project.version.endsWith('-SNAPSHOT') && gradle.taskGraph.hasTask(':uploadArchives') }
     sign publishing.publications
 }
 
@@ -59,6 +61,14 @@ if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePass
                 pom {
                     name = 'Riviere'
                     description = 'Concurrent Stream builders'
+                    url = 'https://github.com/hugmanrique/Riviere'
+
+                    licenses {
+                        license {
+                            name = 'The MIT License'
+                            url = 'https://raw.githubusercontent.com/hugmanrique/Riviere/main/LICENSE'
+                        }
+                    }
 
                     developers {
                         developer {
@@ -81,7 +91,7 @@ if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePass
             maven {
                 def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
                 def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-                url version.endsWith('-SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                url = version.endsWith('-SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
                 credentials {
                     username sonatypeUsername
                     password sonatypePassword
