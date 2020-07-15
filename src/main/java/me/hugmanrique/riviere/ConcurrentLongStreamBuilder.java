@@ -36,12 +36,12 @@ public final class ConcurrentLongStreamBuilder extends AbstractConcurrentStreamB
     }
 
     @Override
-    protected LongStream build0(final LongStream.Builder builder) {
+    LongStream build0(final LongStream.Builder builder) {
         return builder.build();
     }
 
     @Override
-    protected LongStream flatMap(final Stream<LongStream> streams) {
+    LongStream flatMap(final Stream<LongStream> streams) {
         return streams.flatMapToLong(s -> s);
     }
 }

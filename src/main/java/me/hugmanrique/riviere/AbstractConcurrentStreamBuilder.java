@@ -84,7 +84,7 @@ abstract class AbstractConcurrentStreamBuilder<T, B> {
      *
      * @return the current stream builder
      */
-    protected final B get() {
+    final B get() {
         if (isBuilt.get()) {
             throwBuilt();
         }
@@ -125,7 +125,7 @@ abstract class AbstractConcurrentStreamBuilder<T, B> {
      * @param builder the builder
      * @return the built stream
      */
-    protected abstract T build0(B builder);
+    abstract T build0(B builder);
 
     /**
      * Returns a stream consisting of the elements of all streams
@@ -134,5 +134,5 @@ abstract class AbstractConcurrentStreamBuilder<T, B> {
      * @param streams the streams containing the elements
      * @return the new stream
      */
-    protected abstract T flatMap(Stream<T> streams);
+    abstract T flatMap(Stream<T> streams);
 }

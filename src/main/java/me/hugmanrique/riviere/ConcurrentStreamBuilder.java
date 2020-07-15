@@ -37,12 +37,12 @@ public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBu
     }
 
     @Override
-    protected Stream<T> build0(final Stream.Builder<T> builder) {
+    Stream<T> build0(final Stream.Builder<T> builder) {
         return builder.build();
     }
 
     @Override
-    protected Stream<T> flatMap(final Stream<Stream<T>> streams) {
+    Stream<T> flatMap(final Stream<Stream<T>> streams) {
         return streams.flatMap(s -> s);
     }
 }

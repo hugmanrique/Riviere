@@ -36,12 +36,12 @@ public final class ConcurrentDoubleStreamBuilder extends AbstractConcurrentStrea
     }
 
     @Override
-    protected DoubleStream build0(final DoubleStream.Builder builder) {
+    DoubleStream build0(final DoubleStream.Builder builder) {
         return builder.build();
     }
 
     @Override
-    protected DoubleStream flatMap(final Stream<DoubleStream> streams) {
+    DoubleStream flatMap(final Stream<DoubleStream> streams) {
         return streams.flatMapToDouble(s -> s);
     }
 }

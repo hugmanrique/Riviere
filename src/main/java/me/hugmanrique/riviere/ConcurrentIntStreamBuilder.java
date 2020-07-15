@@ -36,12 +36,12 @@ public final class ConcurrentIntStreamBuilder extends AbstractConcurrentStreamBu
     }
 
     @Override
-    protected IntStream build0(final IntStream.Builder builder) {
+    IntStream build0(final IntStream.Builder builder) {
         return builder.build();
     }
 
     @Override
-    protected IntStream flatMap(final Stream<IntStream> streams) {
+    IntStream flatMap(final Stream<IntStream> streams) {
         return streams.flatMapToInt(s -> s);
     }
 }

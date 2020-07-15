@@ -17,7 +17,7 @@ Requires Java 11 or later.
 <dependency>
     <groupId>me.hugmanrique</groupId>
     <artifactId>riviere</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
