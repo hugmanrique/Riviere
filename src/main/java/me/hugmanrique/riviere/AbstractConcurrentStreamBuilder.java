@@ -45,10 +45,26 @@ abstract class AbstractConcurrentStreamBuilder<T, B> {
 
     private final AtomicBoolean isBuilt = new AtomicBoolean(false);
 
+    /**
+     * Constructs a concurrent stream builder with {@link #DEFAULT_BUCKET_COUNT} buckets.
+     * The supplier should be side-effect-free, since it may be called when
+     * attempted updates fail due to contention among threads.
+     *
+     * @param bucketSupplier the side-effect-free stream builder supplier
+     */
     protected AbstractConcurrentStreamBuilder(final Supplier<? extends B> bucketSupplier) {
         this(bucketSupplier, DEFAULT_BUCKET_COUNT);
     }
 
+    /**
+     * Constructs a concurrent stream builder with the given number of maximum buckets.
+     * The supplier should be side-effect-free, since it may be called when
+     * attempted updates fail due to contention among threads.
+     *
+     * @param bucketSupplier the side-effect-free stream builder supplier
+     * @param bucketCount the maximum number of underlying stream builders
+     * @throws IllegalArgumentException if {@code bucketCount} is non-positive
+     */
     protected AbstractConcurrentStreamBuilder(final Supplier<? extends B> bucketSupplier,
                                               int bucketCount) {
         if (bucketCount <= 0) {

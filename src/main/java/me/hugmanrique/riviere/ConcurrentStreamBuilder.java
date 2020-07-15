@@ -11,10 +11,19 @@ import java.util.stream.Stream;
 public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBuilder<Stream<T>, Stream.Builder<T>>
         implements Stream.Builder<T> {
 
+    /**
+     * Constructs a concurrent {@link Stream} builder.
+     */
     public ConcurrentStreamBuilder() {
         super(Stream::builder);
     }
 
+    /**
+     * Constructs a concurrent {@link Stream} builder with the given number
+     * of maximum buckets.
+     *
+     * @param bucketCount the maximum number of underlying stream builders
+     */
     public ConcurrentStreamBuilder(final int bucketCount) {
         super(Stream::builder, bucketCount);
     }

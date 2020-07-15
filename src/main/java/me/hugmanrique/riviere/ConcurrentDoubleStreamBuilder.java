@@ -10,10 +10,19 @@ import java.util.stream.Stream;
 public final class ConcurrentDoubleStreamBuilder extends AbstractConcurrentStreamBuilder<DoubleStream, DoubleStream.Builder>
         implements DoubleStream.Builder {
 
+    /**
+     * Constructs a concurrent {@link DoubleStream} builder.
+     */
     public ConcurrentDoubleStreamBuilder() {
         super(DoubleStream::builder);
     }
 
+    /**
+     * Constructs a concurrent {@link DoubleStream} builder with the given number
+     * of maximum buckets.
+     *
+     * @param bucketCount the maximum number of underlying stream builders
+     */
     public ConcurrentDoubleStreamBuilder(final int bucketCount) {
         super(DoubleStream::builder, bucketCount);
     }
