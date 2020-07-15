@@ -93,7 +93,12 @@ abstract class AbstractConcurrentStreamBuilder<T, B> {
         Stream<T> streams = IntStream.range(0, bucketCount)
                 .mapToObj(buckets::get)
                 .filter(Objects::nonNull)
-                .map(this::build0);
+                .map(builder -> {
+                    //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                    synchronized (builder) {
+                        return build0(builder);
+                    }
+                });
 
         return flatMap(streams);
     }
