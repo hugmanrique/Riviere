@@ -10,6 +10,14 @@ import java.util.stream.Stream;
 public final class ConcurrentIntStreamBuilder extends AbstractConcurrentStreamBuilder<IntStream, IntStream.Builder>
         implements IntStream.Builder {
 
+    class IntBuilderEntry extends AbstractConcurrentStreamBuilder.BuilderEntry {
+        private final int value;
+
+        public IntBuilderEntry(final int value) {
+            this.value = value;
+        }
+    }
+
     /**
      * Constructs a concurrent {@link IntStream} builder.
      */

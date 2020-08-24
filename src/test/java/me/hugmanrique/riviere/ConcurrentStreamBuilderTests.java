@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,10 +33,10 @@ public class ConcurrentStreamBuilderTests {
         builder.add(RED_CAR).add(GREEN_CAR);
 
         Stream<Car> stream = builder.build();
-        Collection<Car> elements = stream.collect(Collectors.toList());
+        List<Car> elements = stream.collect(Collectors.toList());
 
-        assertTrue(elements.contains(RED_CAR));
-        assertFalse(elements.contains(BLUE_CAR));
+        assertEquals(RED_CAR, elements.get(0));
+        assertEquals(BLUE_CAR, elements.get(1));
         assertEquals(2, elements.size());
     }
 
@@ -78,11 +79,55 @@ public class ConcurrentStreamBuilderTests {
         assertEquals(threadCount, builder.build().count());
     }
 
+    /*@Test
+    void testOrderGuarantee() throws InterruptedException {
+        var builder = new ConcurrentStreamBuilder<Car>();
+
+        // Prevents the builder from depending on the current thread's hashCode
+        // to guarantee the Stream.Builder addition ordering guarantee.
+        class ThreadWithHashCode extends Thread {
+            private final int hashCode;
+
+            public ThreadWithHashCode(final int hashCode, final Runnable target) {
+                super(target);
+                this.hashCode = hashCode;
+            }
+
+            @Override
+            public int hashCode() {
+                return hashCode;
+            }
+        }
+
+        // hashCodes and execution order are in reverse order
+        var first = new ThreadWithHashCode(3, () -> builder.add(RED_CAR));
+        var second = new ThreadWithHashCode(2, () -> builder.add(BLUE_CAR));
+        var third = new ThreadWithHashCode(0, () -> builder.add(GREEN_CAR));
+
+        first.start();
+        first.join();
+        second.start();
+        second.join();
+        third.start();
+        third.join();
+
+        List<Car> elements = builder.build().collect(Collectors.toList());
+
+        assertEquals(RED_CAR, elements.get(0));
+        assertEquals(BLUE_CAR, elements.get(1));
+        assertEquals(GREEN_CAR, elements.get(2));
+    }*/
+
     static class Car {
         final String color;
 
         public Car(final String color) {
             this.color = color;
+        }
+
+        @Override
+        public String toString() {
+            return color + " car";
         }
     }
 }
