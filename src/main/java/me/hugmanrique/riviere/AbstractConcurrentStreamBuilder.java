@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -43,8 +42,6 @@ abstract class AbstractConcurrentStreamBuilder<T, B> {
 
     private final AtomicReferenceArray<B> buckets;
     private final int bucketCount;
-
-    private final AtomicLong markCounter = new AtomicLong(0);
 
     private final AtomicBoolean isBuilt = new AtomicBoolean(false);
 
@@ -138,12 +135,4 @@ abstract class AbstractConcurrentStreamBuilder<T, B> {
      * @return the new stream
      */
     abstract T flatMap(Stream<T> streams);
-
-    abstract class BuilderEntry {
-        private final long mark;
-
-        public BuilderEntry() {
-            this.mark = markCounter.getAndIncrement();
-        }
-    }
 }
