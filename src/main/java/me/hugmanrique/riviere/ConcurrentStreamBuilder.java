@@ -85,11 +85,11 @@ public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBu
         @Override
         public boolean tryAdvance(final Consumer<? super T> action) {
             Objects.requireNonNull(action);
-            boolean canAdvance = advance();
-            if (canAdvance) {
-                action.accept(node.items[index]);
+            boolean advance = canAdvance();
+            if (advance) {
+                action.accept(node.items[index++]);
             }
-            return canAdvance;
+            return advance;
         }
     }
 }

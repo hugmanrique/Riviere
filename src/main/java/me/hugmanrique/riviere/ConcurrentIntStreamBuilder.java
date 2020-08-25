@@ -82,11 +82,11 @@ public final class ConcurrentIntStreamBuilder
         @Override
         public boolean tryAdvance(final IntConsumer action) {
             Objects.requireNonNull(action);
-            boolean canAdvance = advance();
-            if (canAdvance) {
-                action.accept(node.items[index]);
+            boolean advance = canAdvance();
+            if (advance) {
+                action.accept(node.items[index++]);
             }
-            return canAdvance;
+            return advance;
         }
     }
 }

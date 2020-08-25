@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 
 /**
  * Concurrent {@code Stream} builder base implementation.
+ * Unlike most concurrent collection implementations, this class
+ * permits the use of {@code null} elements.
  *
  * <p>This implementation employs a <em>non-blocking</em> algorithm based on
  * one described in <a href="https://www.epfl.ch/labs/lamp/wp-content/uploads/2019/01/BrunoDIDOT.pdf">
@@ -61,7 +63,8 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
         private final int capacity;
 
         /**
-         * A value greater than or equal to the number of initialized items.
+         * The number of initialized items (or greater if the Node is
+         * full, i.e. {@code count >= capacity}).
          *
          * <p>The original implementation supports weak updates to
          * an {@code addHint} counter used to speed up the last non-null
@@ -69,10 +72,6 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
          * with no {@code null} equivalent (a magic constant is not
          * a valid solution). Instead, {@code count} is atomically
          * incremented every time an item is added to the Node.
-         * This value can technically overflow, but this isn't
-         * a problem in practice.
-         *
-         * <p>If {@code count >= items.length}, the Node is full.
          */
         private volatile int count;
 
@@ -111,6 +110,7 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
      * Indicates the builder is in built state, at which point no
      * new elements may be enqueued and the list can be traversed.
      */
+    @SuppressWarnings("UnusedVariable")
     private volatile boolean built;
 
     /**
@@ -188,11 +188,27 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
 
         private long est = -1; // size estimate, -1 until needed
 
-        public AbstractSpliterator() {
+        protected AbstractSpliterator() {
             if (!isBuilt())
                 throw new AssertionError(
                         "Spliterator constructed while builder is not in built state");
             this.node = head;
+        }
+
+        /**
+         * Returns whether there is a remaining element.
+         * The caller is responsible for incrementing the current index.
+         *
+         * @return {@code true} if a remaining element exists
+         */
+        protected boolean canAdvance() {
+            if (node == null) return false;
+            if (index >= node.capacity) {
+                node = node.next;
+                index = 0;
+                if (node == null) return false;
+            }
+            return index < node.count;
         }
 
         public T trySplit() {
@@ -204,26 +220,22 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
                 // Traverse list to sum up counts
                 // TODO Nodes have increasing power of 2 capacities, we could
                 // compute the size of all nodes except the last with a shift.
+                long count = 0;
                 Node<A, S> current = head;
                 do {
-                    est += current.count;
+                    count += current.count;
                 } while ((current = current.next) != null);
+                est = count;
             }
             return est;
         }
 
-        protected boolean advance() {
-            if (node == null) return false;
-            if (index >= node.capacity) {
-                node = node.next;
-                index = 0;
-                if (node == null) return false;
-            }
-            return index < node.count;
-        }
-
         public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
+            return Spliterator.ORDERED | Spliterator.SIZED
+                    // Once the builder is in built state, no further modifications can be made
+                    | Spliterator.IMMUTABLE
+                    // trySplit always returns null
+                    | Spliterator.SUBSIZED;
         }
     }
 

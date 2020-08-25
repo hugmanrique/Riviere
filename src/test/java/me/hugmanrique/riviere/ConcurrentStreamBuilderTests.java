@@ -1,11 +1,8 @@
 package me.hugmanrique.riviere;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +33,7 @@ public class ConcurrentStreamBuilderTests {
         List<Car> elements = stream.collect(Collectors.toList());
 
         assertEquals(RED_CAR, elements.get(0));
-        assertEquals(BLUE_CAR, elements.get(1));
+        assertEquals(GREEN_CAR, elements.get(1));
         assertEquals(2, elements.size());
     }
 
@@ -79,7 +76,7 @@ public class ConcurrentStreamBuilderTests {
         assertEquals(threadCount, builder.build().count());
     }
 
-    /*@Test
+    @Test
     void testOrderGuarantee() throws InterruptedException {
         var builder = new ConcurrentStreamBuilder<Car>();
 
@@ -116,7 +113,7 @@ public class ConcurrentStreamBuilderTests {
         assertEquals(RED_CAR, elements.get(0));
         assertEquals(BLUE_CAR, elements.get(1));
         assertEquals(GREEN_CAR, elements.get(2));
-    }*/
+    }
 
     static class Car {
         final String color;
