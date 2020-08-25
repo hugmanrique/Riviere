@@ -9,6 +9,12 @@ import java.util.stream.StreamSupport;
 
 /**
  * A {@link Stream.Builder} supporting full concurrency of additions.
+ * Unlike most concurrent collection implementations, this class
+ * permits the use of {@code null} elements.
+ *
+ * <p>Memory consistency effects: actions in a thread prior to adding
+ * an object into a {@link ConcurrentStreamBuilder} <i>happen-before</i>
+ * actions subsequent to calling {@link #build()} in another thread.
  *
  * @param <T> the type of the stream elements
  */

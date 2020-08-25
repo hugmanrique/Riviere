@@ -164,10 +164,13 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
             Node<A, S> tailNext = curTail.next;
             if (tailNext == null) {
                 // curTail is last node
-                int index = (int) COUNT.getAndAdd(curTail, 1);
+                int index = curTail.count;
                 if (index < curTail.capacity) {
-                    curTail.setPlain(index, valueSupplier);
-                    return;
+                    if (COUNT.compareAndSet(curTail, index, index + 1)) {
+                        // Successful count CAS is the linearization point
+                        curTail.setPlain(index, valueSupplier);
+                        return;
+                    }
                 } else {
                     // The node is full (was already full or lost CAS race).
                     // Create next node (if necessary) and try to append.
@@ -178,7 +181,7 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
 
                     if (NEXT.compareAndSet(curTail, null, nextNode)) {
                         // If this CAS fails, another caller will advance tail
-                        TAIL.compareAndSet(this, curTail, nextNode);
+                        TAIL.weakCompareAndSet(this, curTail, nextNode);
                         return;
                     }
                 }

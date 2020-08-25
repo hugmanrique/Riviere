@@ -1,7 +1,5 @@
 package me.hugmanrique.riviere;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.IntConsumer;
@@ -11,6 +9,10 @@ import java.util.stream.StreamSupport;
 
 /**
  * A {@link IntStream.Builder} supporting full concurrency of additions.
+ *
+ * <p>Memory consistency effects: actions in a thread prior to adding
+ * an element into a {@link ConcurrentIntStreamBuilder} <i>happen-before</i>
+ * actions subsequent to calling {@link #build()} in another thread.
  */
 public final class ConcurrentIntStreamBuilder
         extends AbstractConcurrentStreamBuilder<int[], IntSupplier> implements IntStream.Builder {
