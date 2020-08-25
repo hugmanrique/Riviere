@@ -15,8 +15,6 @@ import java.util.stream.StreamSupport;
 public final class ConcurrentIntStreamBuilder
         extends AbstractConcurrentStreamBuilder<int[], IntSupplier> implements IntStream.Builder {
 
-    private static final VarHandle ITEM = MethodHandles.arrayElementVarHandle(int[].class);
-
     private static final class IntNode extends Node<int[], IntSupplier> {
 
         private IntNode(final int capacity) {
@@ -25,8 +23,7 @@ public final class ConcurrentIntStreamBuilder
 
         private IntNode(final int capacity, final int firstItem) {
             super(capacity, 1);
-            // Piggyback on publication via CAS
-            ITEM.set(this.items, 0, firstItem);
+            this.items[0] = firstItem;
         }
 
         @Override
@@ -35,8 +32,8 @@ public final class ConcurrentIntStreamBuilder
         }
 
         @Override
-        protected void setVolatile(final int index, final IntSupplier supplier) {
-            ITEM.setVolatile(this.items, index, supplier.getAsInt());
+        protected void setPlain(final int index, final IntSupplier supplier) {
+            this.items[index] = supplier.getAsInt();
         }
     }
 

@@ -16,8 +16,6 @@ public final class ConcurrentDoubleStreamBuilder
         extends AbstractConcurrentStreamBuilder<double[], DoubleSupplier>
         implements DoubleStream.Builder {
 
-    private static final VarHandle ITEM = MethodHandles.arrayElementVarHandle(double[].class);
-
     private static final class DoubleNode extends Node<double[], DoubleSupplier> {
 
         private DoubleNode(final int capacity) {
@@ -26,8 +24,7 @@ public final class ConcurrentDoubleStreamBuilder
 
         private DoubleNode(final int capacity, final double firstItem) {
             super(capacity, 1);
-            // Piggyback on publication via CAS
-            ITEM.set(this.items, 0, firstItem);
+            this.items[0] = firstItem;
         }
 
         @Override
@@ -36,8 +33,8 @@ public final class ConcurrentDoubleStreamBuilder
         }
 
         @Override
-        protected void setVolatile(final int index, final DoubleSupplier supplier) {
-            ITEM.setVolatile(this.items, index, supplier.getAsDouble());
+        protected void setPlain(final int index, final DoubleSupplier supplier) {
+            this.items[index] = supplier.getAsDouble();
         }
     }
 

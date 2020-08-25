@@ -1,7 +1,5 @@
 package me.hugmanrique.riviere;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.LongConsumer;
@@ -16,8 +14,6 @@ public final class ConcurrentLongStreamBuilder
         extends AbstractConcurrentStreamBuilder<long[], LongSupplier>
         implements LongStream.Builder {
 
-    private static final VarHandle ITEM = MethodHandles.arrayElementVarHandle(long[].class);
-
     private static final class LongNode extends Node<long[], LongSupplier> {
 
         private LongNode(final int capacity) {
@@ -26,8 +22,7 @@ public final class ConcurrentLongStreamBuilder
 
         private LongNode(final int capacity, final long firstItem) {
             super(capacity, 1);
-            // Piggyback on publication via CAS
-            ITEM.set(this.items, 0, firstItem);
+            this.items[0] = firstItem;
         }
 
         @Override
@@ -36,8 +31,8 @@ public final class ConcurrentLongStreamBuilder
         }
 
         @Override
-        protected void setVolatile(final int index, final LongSupplier supplier) {
-            ITEM.setVolatile(this.items, index, supplier.getAsLong());
+        protected void setPlain(final int index, final LongSupplier supplier) {
+            this.items[index] = supplier.getAsLong();
         }
     }
 

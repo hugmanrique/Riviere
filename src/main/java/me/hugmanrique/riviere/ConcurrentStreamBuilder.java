@@ -1,7 +1,5 @@
 package me.hugmanrique.riviere;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
@@ -17,8 +15,6 @@ import java.util.stream.StreamSupport;
 public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBuilder<T[], Supplier<T>>
         implements Stream.Builder<T> {
 
-    private static final VarHandle ITEM = MethodHandles.arrayElementVarHandle(Object[].class);
-
     private final class TNode extends Node<T[], Supplier<T>> {
 
         private TNode(final int capacity) {
@@ -27,8 +23,7 @@ public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBu
 
         private TNode(final int capacity, final T firstItem) {
             super(capacity, 1);
-            // Piggyback on publication via CAS
-            ITEM.set(this.items, 0, firstItem);
+            this.items[0] = firstItem;
         }
 
         @SuppressWarnings("unchecked")
@@ -38,8 +33,8 @@ public final class ConcurrentStreamBuilder<T> extends AbstractConcurrentStreamBu
         }
 
         @Override
-        protected void setVolatile(final int index, final Supplier<T> supplier) {
-            ITEM.setVolatile(this.items, index, supplier.get());
+        protected void setPlain(final int index, final Supplier<T> supplier) {
+            this.items[index] = supplier.get();
         }
     }
 

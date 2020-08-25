@@ -31,20 +31,28 @@ import java.util.stream.Stream;
 abstract class AbstractConcurrentStreamBuilder<A, S> {
 
     // This is a modification of the enqueuing algorithm based on
-    // a singly linked unrolled list proposed by B. Didot,
+    // a singly linked unrolled list proposed by B. Didot
     // with support for variable node capacities.
     //
     // The fundamental invariants are:
     // - There is exactly one (last) Node with a null next reference,
     //   which is CASed when enqueuing. It can always be reached from
     //   the head.
-    // - The elements contained in the builder are the initialized
-    //   elements in the items array of each Node.
-    // - All predecessor items of an initialized element are initialized.
-    //   This includes all the items in a Node that can reach
-    //   the Node of that element.
+    // - The items stored in array indices lower than the Node's
+    //   current count are elements of the builder.
+    // - A Node is full if its count is greater than or equal to
+    //   its capacity.
+    // - All predecessors of an initialized element are initialized.
     // - Nodes cannot be dequeued. The list can only be traversed if
     //   the builder is in the built state.
+    //
+    // The last point is particularly important: Node items are written
+    // in plain mode. The built variable is read in opaque mode when
+    // adding elements to the builder. When calling #build, a stronger
+    // volatile read ensures all writes are visible when traversing
+    // the list.
+    // addHint is replaced by a thread-safe counter incremented atomically
+    // on every write attempt.
     //
     // The tail is permitted to lag. Both head and tail may point to
     // an empty Node. Since no dequeuing is performed, tail cannot lag
@@ -71,7 +79,7 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
          * element search. However, Node must support primitive arrays
          * with no {@code null} equivalent (a magic constant is not
          * a valid solution). Instead, {@code count} is atomically
-         * incremented every time an item is added to the Node.
+         * incremented every time an item addition is attempted.
          */
         private volatile int count;
 
@@ -103,7 +111,7 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
 
         protected abstract A newArray(int length);
 
-        protected abstract void setVolatile(final int index, final S supplier);
+        protected abstract void setPlain(final int index, final S supplier);
     }
 
     /**
@@ -158,7 +166,7 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
                 // curTail is last node
                 int index = (int) COUNT.getAndAdd(curTail, 1);
                 if (index < curTail.capacity) {
-                    curTail.setVolatile(index, valueSupplier);
+                    curTail.setPlain(index, valueSupplier);
                     return;
                 } else {
                     // The node is full (was already full or lost CAS race).
@@ -223,7 +231,7 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
                 long count = 0;
                 Node<A, S> current = head;
                 do {
-                    count += current.count;
+                    count += Math.min(current.count, current.capacity);
                 } while ((current = current.next) != null);
                 est = count;
             }

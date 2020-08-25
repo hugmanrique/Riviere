@@ -1,6 +1,7 @@
 package me.hugmanrique.riviere;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -57,27 +58,63 @@ public class ConcurrentStreamBuilderTests {
     }
 
     @Test
-    void testSegmentAdds() throws InterruptedException {
-        final int threadCount = 8;
-        ExecutorService service = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
+    void testNullElements() {
+        // At the back
+        var builder = new ConcurrentStreamBuilder<Car>();
+        builder.add(RED_CAR).add(null).add(null);
+        List<Car> elements = builder.build().collect(Collectors.toList());
 
+        assertEquals(RED_CAR, elements.get(0));
+        assertNull(elements.get(1));
+        assertNull(elements.get(2));
+        assertEquals(3, elements.size());
+
+        // At the beginning
+        builder = new ConcurrentStreamBuilder<>();
+        builder.add(null).add(GREEN_CAR);
+        elements = builder.build().collect(Collectors.toList());
+
+        assertNull(elements.get(0));
+        assertEquals(GREEN_CAR, elements.get(1));
+        assertEquals(2, elements.size());
+
+        // In between
+        builder = new ConcurrentStreamBuilder<>();
+        builder.add(RED_CAR).add(null).add(BLUE_CAR);
+        elements = builder.build().collect(Collectors.toList());
+
+        assertEquals(RED_CAR, elements.get(0));
+        assertNull(elements.get(1));
+        assertEquals(BLUE_CAR, elements.get(2));
+        assertEquals(3, elements.size());
+    }
+
+    @Test
+    void testAddsWithContention() throws InterruptedException {
+        // The debugger shows Node counts regularly go over the Node capacity.
+        // However, the count is valid when it is lower than the capacity.
+        final int threadCount = 8;
+        final int addsPerThread = 100;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        var latch = new CountDownLatch(threadCount);
         var builder = new ConcurrentStreamBuilder<Car>();
 
         for (int i = 0; i < threadCount; i++) {
-            service.execute(() -> {
-                builder.add(RED_CAR);
+            executor.execute(() -> {
+                for (int j = 0; j < addsPerThread; j++) {
+                    builder.add(RED_CAR);
+                }
                 latch.countDown();
             });
         }
 
         latch.await();
-        service.shutdown();
-        assertEquals(threadCount, builder.build().count());
+        executor.shutdown();
+        assertEquals(threadCount * addsPerThread, builder.build().count());
     }
 
     @Test
-    void testOrderGuarantee() throws InterruptedException {
+    void testOrderIsPreserved() throws InterruptedException {
         var builder = new ConcurrentStreamBuilder<Car>();
 
         // Prevents the builder from depending on the current thread's hashCode
