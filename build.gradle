@@ -35,6 +35,12 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // Execute top-level classes in parallel but methods in same thread
+    systemProperties = [
+        'junit.jupiter.execution.parallel.enabled': 'true',
+        'junit.jupiter.execution.parallel.mode.default': 'same_thread',
+        'junit.jupiter.execution.parallel.mode.classes.default': 'concurrent'
+    ]
 }
 
 javadoc {
