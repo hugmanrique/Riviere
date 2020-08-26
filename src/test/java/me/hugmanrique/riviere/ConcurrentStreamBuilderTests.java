@@ -91,8 +91,8 @@ public class ConcurrentStreamBuilderTests {
 
     @Test
     void testAddsWithContention() throws InterruptedException {
-        // The debugger shows Node counts regularly go over the Node capacity.
-        // However, the count is valid when it is lower than the capacity.
+        // The debugger shows Node counts regularly go over the Node capacity
+        // by ~2-6 increments with these parameters.
         final int threadCount = 8;
         final int addsPerThread = 100;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
@@ -110,7 +110,11 @@ public class ConcurrentStreamBuilderTests {
 
         latch.await();
         executor.shutdown();
-        assertEquals(threadCount * addsPerThread, builder.build().count());
+        List<Car> elements = builder.build().collect(Collectors.toList());
+        for (Car element : elements) {
+            assertEquals(RED_CAR, element);
+        }
+        assertEquals(threadCount * addsPerThread, elements.size());
     }
 
     @Test
