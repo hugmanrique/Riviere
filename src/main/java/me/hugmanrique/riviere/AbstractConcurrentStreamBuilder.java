@@ -22,9 +22,6 @@ import java.util.stream.Stream;
  * used as a temporary buffer (which additionally introduces
  * copying overhead).
  *
- * <p>The maximum capacity of an {@link AbstractConcurrentStreamBuilder}
- * is {@code 2^(32 - log2(k)) - 1} where {@code k} is the initial capacity.
- *
  * @param <A> the array type for the stream element type
  * @param <S> the supplier type for the stream element type
  */
@@ -64,6 +61,12 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
      * a {@link AbstractConcurrentStreamBuilder}.
      */
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
+
+    /**
+     * The maximum capacity of a {@link Node}.
+     */
+    // Prevents overflow by a single left-shift when creating the next Node
+    private static final int MAX_NODE_CAPACITY = 1 << 30;
 
     abstract static class Node<A, S> {
         private volatile Node<A, S> next;
@@ -171,7 +174,7 @@ abstract class AbstractConcurrentStreamBuilder<A, S> {
                 } else {
                     // The node is full (was already full or lost CAS race).
                     // Create next node (if necessary) and try to append.
-                    int nextCap = curTail.capacity << 1; // overflow checked by Node constructor
+                    int nextCap = Math.min(curTail.capacity << 1, MAX_NODE_CAPACITY);
                     if (nextNode == null || nextNode.capacity != nextCap) {
                         nextNode = createNextNode(nextCap, valueSupplier);
                     }
