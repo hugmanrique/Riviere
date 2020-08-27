@@ -12,9 +12,9 @@ import java.util.stream.StreamSupport;
  * Unlike most concurrent collection implementations, this class
  * permits the use of {@code null} elements.
  *
- * <p>Memory consistency effects: actions in a thread prior to adding
+ * <p>Memory consistency effects: actions in a thread prior to placing
  * an object into a {@link ConcurrentStreamBuilder} <i>happen-before</i>
- * actions subsequent to calling {@link #build()} in another thread.
+ * actions subsequent to building the stream in another thread.
  *
  * @param <T> the type of the stream elements
  */

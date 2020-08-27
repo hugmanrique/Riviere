@@ -8,8 +8,6 @@ import java.util.stream.Stream;
 
 /**
  * Concurrent {@code Stream} builder base implementation.
- * Unlike most concurrent collection implementations, this class
- * permits the use of {@code null} elements.
  *
  * <p>This implementation employs a <em>non-blocking</em> algorithm based on
  * one described in <a href="https://www.epfl.ch/labs/lamp/wp-content/uploads/2019/01/BrunoDIDOT.pdf">
@@ -21,6 +19,10 @@ import java.util.stream.Stream;
  * (and primitive equivalents) and a synchronized {@link ArrayList}
  * used as a temporary buffer (which additionally introduces
  * copying overhead).
+ *
+ * <p>Memory consistency effects: actions in a thread prior to placing
+ * an object into a {@link ConcurrentStreamBuilder} <i>happen-before</i>
+ * actions subsequent to building the stream in another thread.
  *
  * @param <A> the array type for the stream element type
  * @param <S> the supplier type for the stream element type

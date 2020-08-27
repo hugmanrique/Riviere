@@ -10,9 +10,9 @@ import java.util.stream.StreamSupport;
 /**
  * A {@link LongStream.Builder} supporting full concurrency of additions.
  *
- * <p>Memory consistency effects: actions in a thread prior to adding
- * an element into a {@link ConcurrentLongStreamBuilder} <i>happen-before</i>
- * actions subsequent to calling {@link #build()} in another thread.
+ * <p>Memory consistency effects: actions in a thread prior to placing
+ * an item into a {@link ConcurrentLongStreamBuilder} <i>happen-before</i>
+ * actions subsequent to building the stream in another thread.
  */
 public final class ConcurrentLongStreamBuilder
         extends AbstractConcurrentStreamBuilder<long[], LongSupplier>
