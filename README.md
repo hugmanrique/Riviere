@@ -15,7 +15,7 @@ is based on singly linked nodes, which increases the memory overhead and reduces
 enjoys the best of both worlds: it employs a non-blocking enqueuing algorithm based on
 a singly linked unrolled list proposed in [A Non-Blocking Concurrent Queue Algorithm](https://www.epfl.ch/labs/lamp/wp-content/uploads/2019/01/BrunoDIDOT.pdf)
 by B. Didot, with support for increasing node capacities (similar to `SpinedBuffer`, used by
-instances returned by `Stream.builder()` and its primitive equivalents), primitive types,
+instances returned by `Stream.builder()`), primitive types,
 and `null` elements.
 
 Under moderate to high contention, this library significantly outperforms implementations based on
