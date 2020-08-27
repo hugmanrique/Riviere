@@ -1,88 +1,116 @@
 package me.hugmanrique.riviere;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Queue;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 public class ConcurrentStreamBuilderTests {
 
     static final Car RED_CAR = new Car("red");
-    static final Car BLUE_CAR = new Car("blue");
     static final Car GREEN_CAR = new Car("green");
+    static final Car BLUE_CAR = new Car("blue");
 
     @Test
-    void testConstruction() {
+    void testAccepts() {
         var builder = new ConcurrentStreamBuilder<Car>();
         builder.accept(RED_CAR);
-        assertEquals(builder, builder.add(BLUE_CAR));
+        assertEquals(builder, builder.add(GREEN_CAR));
     }
 
     @Test
     void testBuild() {
         var builder = new ConcurrentStreamBuilder<Car>();
-        builder.add(RED_CAR).add(GREEN_CAR);
+        builder.accept(RED_CAR);
+        builder.accept(GREEN_CAR);
+        builder.accept(BLUE_CAR);
+        builder.accept(RED_CAR);
 
-        Stream<Car> stream = builder.build();
-        Collection<Car> elements = stream.collect(Collectors.toList());
-
-        assertTrue(elements.contains(RED_CAR));
-        assertFalse(elements.contains(BLUE_CAR));
-        assertEquals(2, elements.size());
-    }
-
-    @Test
-    void testDuplicateBuildsThrow() {
-        var builder = new ConcurrentStreamBuilder<Car>();
-        builder.add(RED_CAR);
-        builder.build();
-
-        assertThrows(IllegalStateException.class, builder::build);
-        assertThrows(IllegalStateException.class, () -> builder.add(GREEN_CAR));
+        Car[] elements = builder.build().toArray(Car[]::new);
+        assertArrayEquals(new Car[] { RED_CAR, GREEN_CAR, BLUE_CAR, RED_CAR }, elements);
     }
 
     @Test
     void testEmptyBuild() {
         var builder = new ConcurrentStreamBuilder<Car>();
-        var stream = builder.build();
+        Stream<Car> stream = builder.build();
         assertEquals(0, stream.count());
-
-        assertThrows(IllegalStateException.class, () -> builder.add(RED_CAR));
     }
 
     @Test
-    void testSegmentAdds() throws InterruptedException {
-        final int threadCount = 8;
-        ExecutorService service = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
+    void testNullElements() {
         var builder = new ConcurrentStreamBuilder<Car>();
+        // At the back
+        Car[] expected = new Car[] { RED_CAR, null, null };
+        builder.add(RED_CAR).add(null).add(null);
+        Car[] elements = builder.build().toArray(Car[]::new);
+        assertArrayEquals(expected, elements);
 
-        for (int i = 0; i < threadCount; i++) {
-            service.execute(() -> {
-                builder.add(RED_CAR);
-                latch.countDown();
-            });
-        }
+        // At the front
+        builder = new ConcurrentStreamBuilder<>();
+        expected = new Car[] { null, null, GREEN_CAR };
+        builder.add(null).add(null).add(GREEN_CAR);
+        elements = builder.build().toArray(Car[]::new);
+        assertArrayEquals(expected, elements);
 
-        latch.await();
-        service.shutdown();
-        assertEquals(threadCount, builder.build().count());
+        // In between
+        builder = new ConcurrentStreamBuilder<>();
+        expected = new Car[] { RED_CAR, null, BLUE_CAR };
+        builder.add(RED_CAR).add(null).add(BLUE_CAR);
+        elements = builder.build().toArray(Car[]::new);
+        assertArrayEquals(expected, elements);
     }
 
-    static class Car {
-        final String color;
+    @Test
+    void testBuiltStateChecks() {
+        var builder = new ConcurrentStreamBuilder<Car>();
+        builder.accept(RED_CAR);
+        builder.build();
+        assertThrows(IllegalStateException.class, builder::build);
+        assertThrows(IllegalStateException.class, () -> builder.accept(GREEN_CAR));
+    }
 
-        public Car(final String color) {
+    @Test
+    void testAcceptsWithContention() throws InterruptedException {
+        var builder = new ConcurrentStreamBuilder<Car>();
+        int expectedCount = TestUtils.withContention(() -> builder.add(RED_CAR));
+        Car[] elements = builder.build().toArray(Car[]::new);
+        assertEquals(expectedCount, elements.length);
+        for (int i = 0; i < expectedCount; i++)
+            assertEquals(RED_CAR, elements[i]);
+    }
+
+    @Test
+    void testAcceptsOrdering() throws InterruptedException {
+        var builder = new ConcurrentStreamBuilder<Car>();
+        Car[] expected = IntStream.range(1, 100)
+                .mapToObj(value -> new Car(Integer.toString(value)))
+                .toArray(Car[]::new);
+        Queue<Runnable> tasks = Arrays.stream(expected)
+                .map(car -> (Runnable) () -> builder.add(car))
+                .collect(Collectors.toCollection(ArrayDeque::new));
+        TestUtils.testOrdering(tasks);
+        Car[] elements = builder.build().toArray(Car[]::new);
+        assertArrayEquals(expected, elements);
+    }
+
+    private static class Car {
+        private final String color;
+
+        private Car(final String color) {
             this.color = color;
+        }
+
+        @Override
+        public String toString() {
+            return color + " car";
         }
     }
 }

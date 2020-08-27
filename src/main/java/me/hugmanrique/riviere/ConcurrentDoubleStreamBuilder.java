@@ -1,47 +1,92 @@
 package me.hugmanrique.riviere;
 
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import java.util.stream.DoubleStream;
-import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A {@link DoubleStream.Builder} supporting full concurrency of additions.
+ *
+ * <p>Memory consistency effects: actions in a thread prior to placing
+ * an item into a {@link ConcurrentDoubleStreamBuilder} <i>happen-before</i>
+ * actions subsequent to building the stream in another thread.
  */
-@SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-public final class ConcurrentDoubleStreamBuilder extends AbstractConcurrentStreamBuilder<DoubleStream, DoubleStream.Builder>
+public final class ConcurrentDoubleStreamBuilder
+        extends AbstractConcurrentStreamBuilder<double[], DoubleSupplier>
         implements DoubleStream.Builder {
+
+    private static final class DoubleNode extends Node<double[], DoubleSupplier> {
+
+        private DoubleNode(final int capacity) {
+            super(capacity);
+        }
+
+        private DoubleNode(final int capacity, final double firstItem) {
+            super(capacity, 1);
+            this.items[0] = firstItem;
+        }
+
+        @Override
+        protected double[] newArray(final int length) {
+            return new double[length];
+        }
+
+        @Override
+        protected void setPlain(final int index, final DoubleSupplier supplier) {
+            this.items[index] = supplier.getAsDouble();
+        }
+    }
 
     /**
      * Constructs a concurrent {@link DoubleStream} builder.
      */
-    public ConcurrentDoubleStreamBuilder() {
-        super(DoubleStream::builder);
-    }
+    public ConcurrentDoubleStreamBuilder() {}
 
     /**
-     * Constructs a concurrent {@link DoubleStream} builder with the given number
-     * of maximum buckets.
+     * Constructs a concurrent {@link DoubleStream} builder with
+     * the given initial node capacity.
      *
-     * @param bucketCount the maximum number of underlying stream builders
+     * @param initialCapacity the capacity of the head node
      */
-    public ConcurrentDoubleStreamBuilder(final int bucketCount) {
-        super(DoubleStream::builder, bucketCount);
+    public ConcurrentDoubleStreamBuilder(final int initialCapacity) {
+        super(initialCapacity);
+    }
+
+    @Override
+    protected DoubleNode createEmptyNode(final int capacity) {
+        return new DoubleNode(capacity);
+    }
+
+    @Override
+    protected DoubleNode createNextNode(final int capacity, final DoubleSupplier valueSupplier) {
+        return new DoubleNode(capacity, valueSupplier.getAsDouble());
     }
 
     @Override
     public void accept(final double value) {
-        var builder = get();
-        synchronized (builder) {
-            builder.accept(value);
+        enqueue(() -> value);
+    }
+
+    @Override
+    public DoubleStream build() {
+        checkAndSetBuilt();
+        return StreamSupport.doubleStream(new BuilderSpliterator(), false);
+    }
+
+    private final class BuilderSpliterator extends AbstractSpliterator<Spliterator.OfDouble>
+            implements Spliterator.OfDouble {
+
+        @Override
+        public boolean tryAdvance(final DoubleConsumer action) {
+            Objects.requireNonNull(action);
+            boolean advance = canAdvance();
+            if (advance) {
+                action.accept(node.items[index++]);
+            }
+            return advance;
         }
-    }
-
-    @Override
-    DoubleStream build0(final DoubleStream.Builder builder) {
-        return builder.build();
-    }
-
-    @Override
-    DoubleStream flatMap(final Stream<DoubleStream> streams) {
-        return streams.flatMapToDouble(s -> s);
     }
 }
