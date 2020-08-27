@@ -6,11 +6,11 @@
 [![license][license]][license-url]
 
 **Riviere** provides concurrent [`Stream`](https://docs.oracle.com/en/java/javase/14/docs/api/java.base/java/util/stream/Stream.html) builder implementations.
+
 Stream builders avoid the copying overhead associated with using an [`ArrayList`](https://docs.oracle.com/en/java/javase/14/docs/api/java.base/java/util/ArrayList.html)
 as a temporary buffer. However, there's no clear concurrent equivalent:
 [`ConcurrentLinkedQueue`](https://docs.oracle.com/en/java/javase/14/docs/api/java.base/java/util/concurrent/ConcurrentLinkedQueue.html)
 is based on singly linked nodes, which increases the memory overhead and reduces data locality.
-
 [`ConcurrentStreamBuilder`](https://javadoc.io/doc/me.hugmanrique/riviere/latest/me/hugmanrique/riviere/ConcurrentStreamBuilder.html)
 enjoys the best of both worlds: it employs a non-blocking enqueuing algorithm based on
 a singly linked unrolled list proposed in [A Non-Blocking Concurrent Queue Algorithm](https://www.epfl.ch/labs/lamp/wp-content/uploads/2019/01/BrunoDIDOT.pdf)
